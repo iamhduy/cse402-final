@@ -13,7 +13,7 @@ from torchvision.transforms import functional
 from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 from PIL import Image
 
-IMG_DIR = './Celebrity Faces Dataset'
+IMG_DIR = './Celebrity Faces Dataset/dataset'
 NUM_FOLDS = 10
 NUM_IMAGES_PER_CLASS = 100
 NUM_TEST_IMAGES_PER_CLASS = NUM_IMAGES_PER_CLASS // NUM_FOLDS  # 10
@@ -71,9 +71,6 @@ def extractFeatures(file_paths):
 
 
 def prepareAndRunData(img_dir):
-    """
-    Splits the face dataset into 10 folds
-    """
     class_dict = {}
     class_names = []
 
