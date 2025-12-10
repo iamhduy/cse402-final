@@ -2,7 +2,7 @@ import os
 import glob
 from sklearn.model_selection import KFold
 import numpy as np
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -10,9 +10,10 @@ import torch
 import torch.nn as nn
 from torchvision import models, transforms
 from torchvision.transforms import functional
+from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 from PIL import Image
 
-IMG_DIR = './Celebrity Faces Dataset/dataset'
+IMG_DIR = './Celebrity Faces Dataset'
 NUM_FOLDS = 10
 NUM_IMAGES_PER_CLASS = 100
 NUM_TEST_IMAGES_PER_CLASS = NUM_IMAGES_PER_CLASS // NUM_FOLDS  # 10
@@ -21,8 +22,14 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(f"Running model on: {DEVICE}")
 
 # Load pre-trained AlexNet
-alexnet = models.alexnet(weights=models.AlexNet_Weights.IMAGENET1K_V1)
-feature_extractor = nn.Sequential(*list(alexnet.children())[:-1], nn.Flatten()).to(DEVICE)
+# alexnet = models.alexnet(weights=models.AlexNet_Weights.IMAGENET1K_V1)
+# feature_extractor = nn.Sequential(*list(alexnet.children())[:-1], nn.Flatten()).to(DEVICE)
+efficient = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
+feature_extractor = nn.Sequential(
+    efficient.features,
+    efficient.avgpool,
+    nn.Flatten()
+).to(DEVICE)
 feature_extractor.eval()
 
 # Applies modified transformations to create variations for training data
@@ -122,7 +129,8 @@ def prepareAndRunData(img_dir):
         x_test = extractFeatures(test_files)
         y_test = np.array(test_labels)
 
-        model = SVC(kernel='linear', C=1.0, random_state=42)
+        # model = SVC(kernel='linear', C=1.0, random_state=42)
+        model = LinearSVC(C=1.0, max_iter=10000)
         print("training SVM classifier")
         model.fit(x_train, y_train)
 
